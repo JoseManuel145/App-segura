@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:login_app/core/security/screen_security_service.dart';
 import 'package:login_app/core/security/screen_security_service_impl.dart';
+import 'package:login_app/services/gps_check.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,11 +19,33 @@ class _LoginPageState extends State<LoginPage> {
 
   late final ScreenSecurityService _securityService;
 
+  // Estado para la verificación de GPS
+  bool _checkingGps = true;
+  bool _fakeGpsDetected = false;
+
   @override
   void initState() {
     super.initState();
     _securityService = ScreenSecurityServiceImpl();
     _securityService.enableProtection();
+    _verificarGps();
+  }
+
+  Future<void> _verificarGps() async {
+    final esFake = await GpsCheck.isFakeGps();
+    if (!mounted) return;
+    setState(() {
+      _fakeGpsDetected = esFake;
+      _checkingGps = false;
+    });
+  }
+
+  Future<void> _reintentarGps() async {
+    setState(() {
+      _checkingGps = true;
+      _fakeGpsDetected = false;
+    });
+    await _verificarGps();
   }
 
   @override
@@ -45,6 +68,57 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Mientras verifica el GPS, mostrar loader
+    if (_checkingGps) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // 2. Si detecta Fake GPS, mostrar pantalla de bloqueo
+    if (_fakeGpsDetected) {
+      return Scaffold(
+        backgroundColor: Colors.red.shade900,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.gpp_bad, color: Colors.white, size: 80),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Acceso bloqueado',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Se detectó una ubicación falsa (Fake GPS) o el '
+                    'servicio de ubicación está desactivado. '
+                    'Desactiva la app de ubicación simulada para continuar.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _reintentarGps,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 3. Si todo está bien, mostrar el login normal
     return Scaffold(
       body: SafeArea(
         child: Padding(
