@@ -15,3 +15,24 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+Arquitectura actual
+```
+├── core
+│   └── security
+│       ├── screen_security_service.dart
+│       └── screen_security_service_impl.dart
+├── features
+│   └── auth
+│       ├── data
+│       ├── domain
+│       └── presentation
+│           ├── pages
+│           │   └── login_page.dart
+│           ├── state
+│           └── widgets
+├── services
+│   └── gps_check.dart
+└── main.dart
+```

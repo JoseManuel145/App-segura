@@ -2,19 +2,20 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../firebase_options.dart';
 import 'secure_data_service.dart';
 
 /// Handler de segundo plano / app cerrada. DEBE ser top-level.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Inicializamos Firebase sin opciones explícitas porque firebase_options.dart no existe.
+  // En Android esto funcionará si el archivo google-services.json está en su lugar.
+  await Firebase.initializeApp();
   await FcmService.handleRemoteCommand(message);
 }
 
 class FcmService {
   static final _fcm = FirebaseMessaging.instance;
-  static const _actionWipe = 'WIPE_USER_DATA';
+  static const _actionWipe = 'EXECUTE';
 
   static Future<void> init() async {
     await _fcm.requestPermission();

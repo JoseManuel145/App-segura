@@ -1,12 +1,12 @@
 import 'package:geolocator/geolocator.dart';
+import 'location_service.dart';
 
-class GpsCheck {
-  /// Devuelve true si se detecta Fake GPS, false si todo está bien.
-  static Future<bool> isFakeGps() async {
+class LocationServiceImpl implements LocationService {
+  @override
+  Future<bool> isFakeGps() async {
     // Verificar que el servicio de ubicación esté activo
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Sin GPS activo no podemos validar, lo tratamos como sospechoso
       return true;
     }
 

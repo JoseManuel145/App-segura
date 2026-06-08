@@ -9,7 +9,6 @@ class SecureDataService {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
-  /// Se incrementa tras cada cambio para refrescar la UI.
   final ValueNotifier<int> dataRevision = ValueNotifier<int>(0);
 
   static const _kUserId = 'user_id';
@@ -39,7 +38,6 @@ class SecureDataService {
     return out;
   }
 
-  /// Borra únicamente los campos sensibles.
   Future<void> wipeSensitiveData() async {
     for (final k in sensitiveKeys) {
       await _storage.delete(key: k);

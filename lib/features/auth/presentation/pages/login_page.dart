@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:login_app/core/security/screen_security_service.dart';
 import 'package:login_app/core/security/screen_security_service_impl.dart';
-import 'package:login_app/services/gps_check.dart';
+import 'package:login_app/core/location/location_service.dart';
+import 'package:login_app/core/location/location_service_impl.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   late final ScreenSecurityService _securityService;
+  late final LocationService _locationService;
 
   // Estado para la verificación de GPS
   bool _checkingGps = true;
@@ -27,12 +29,14 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _securityService = ScreenSecurityServiceImpl();
+    _locationService = LocationServiceImpl();
+    
     _securityService.enableProtection();
     _verificarGps();
   }
 
   Future<void> _verificarGps() async {
-    final esFake = await GpsCheck.isFakeGps();
+    final esFake = await _locationService.isFakeGps();
     if (!mounted) return;
     setState(() {
       _fakeGpsDetected = esFake;
