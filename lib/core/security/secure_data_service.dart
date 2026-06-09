@@ -11,24 +11,26 @@ class SecureDataService {
 
   final ValueNotifier<int> dataRevision = ValueNotifier<int>(0);
 
-  static const _kUserId = 'user_id';
-  static const kTarjeta = 'numero_tarjeta';
-  static const kCurp    = 'curp';
-  static const kToken   = 'token_sesion';
-  static const kSaldo   = 'saldo_cuenta';
+  // Claves requeridas para la demostración
+  static const kAccessToken  = 'access_token';
+  static const kRefreshToken = 'refresh_token';
+  static const kUserEmail    = 'user_email';
+  static const kPrivateKey   = 'private_key';
 
-  static const sensitiveKeys = <String>[kTarjeta, kCurp, kToken, kSaldo];
+  static const sensitiveKeys = <String>[
+    kAccessToken,
+    kRefreshToken,
+    kUserEmail,
+    kPrivateKey,
+  ];
 
-  Future<void> seedSensitiveData(String userId) async {
-    await _storage.write(key: _kUserId, value: userId);
-    await _storage.write(key: kTarjeta, value: '4111 1111 1111 1111');
-    await _storage.write(key: kCurp,    value: 'BAMB011215HCSXXX09');
-    await _storage.write(key: kToken,   value: 'eyJhbGciOiJIUzI1NiJ9.demo');
-    await _storage.write(key: kSaldo,   value: '\$48,250.00 MXN');
+  Future<void> seedSensitiveData(String email) async {
+    await _storage.write(key: kAccessToken,  value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+    await _storage.write(key: kRefreshToken, value: 'def456-ghi789-jkl012');
+    await _storage.write(key: kUserEmail,    value: email);
+    await _storage.write(key: kPrivateKey,   value: '-----BEGIN PRIVATE KEY-----\nMIIEvA...');
     dataRevision.value++;
   }
-
-  Future<String?> currentUserId() => _storage.read(key: _kUserId);
 
   Future<Map<String, String>> readSensitive() async {
     final out = <String, String>{};
@@ -38,10 +40,9 @@ class SecureDataService {
     return out;
   }
 
-  Future<void> wipeSensitiveData() async {
-    for (final k in sensitiveKeys) {
-      await _storage.delete(key: k);
-    }
+  Future<void> clearSensitiveData() async {
+    await _storage.deleteAll();
     dataRevision.value++;
+    debugPrint('🗑️ [SecureDataService] Datos sensibles eliminados localmente.');
   }
 }
