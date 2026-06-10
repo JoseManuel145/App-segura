@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/security/secure_data_service.dart';
+import '../../../../core/security/session_manager.dart';
 import '../../../../core/security/screen_security_service.dart';
 import '../../../../core/security/screen_security_service_impl.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -16,6 +18,7 @@ class PersonalInfoPage extends StatefulWidget {
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
   late final ScreenSecurityService _securityService;
   late final GetSensitiveDataUseCase _getSensitiveDataUseCase;
+  late final AuthRepositoryImpl _authRepository;
   SensitiveInfo? _sensitiveInfo;
 
   @override
@@ -24,10 +27,11 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     _securityService = ScreenSecurityServiceImpl();
     _securityService.enableProtection();
 
-    final authRepository = AuthRepositoryImpl(SecureDataService.instance);
-    _getSensitiveDataUseCase = GetSensitiveDataUseCase(authRepository);
+    final secureService = SecureDataService.instance;
+    _authRepository = AuthRepositoryImpl(secureService);
+    _getSensitiveDataUseCase = GetSensitiveDataUseCase(_authRepository);
 
-    SecureDataService.instance.dataRevision.addListener(_updateUI);
+    secureService.dataRevision.addListener(_updateUI);
     _updateUI();
   }
 
@@ -37,6 +41,15 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       setState(() {
         _sensitiveInfo = info;
       });
+    }
+  }
+
+  void _logout() async {
+    await _authRepository.clearAllSensitiveData();
+    if (mounted) {
+      // Detener el monitoreo al cerrar sesión manualmente
+      Provider.of<SessionManager>(context, listen: false).stop();
+      Navigator.pop(context);
     }
   }
 
@@ -51,7 +64,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Información Personal'),
+        title: const Text('Mi Perfil Seguro'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -68,30 +81,42 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               color: Colors.indigo,
               child: Padding(
                 padding: EdgeInsets.all(12.0),
-                child: Text(
-                  'Esta pantalla está protegida contra capturas de pantalla.\nLos datos aquí mostrados se borrarán si se recibe un comando WIPE remoto.',
-                  style: TextStyle(color: Colors.white),
+                child: Row(
+                  children: [
+                    Icon(Icons.security, color: Colors.white),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Protección de pantalla activa y monitoreo de inactividad.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             const Text(
-              'DATOS SENSIBLES EN STORAGE:',
+              'SESIÓN ACTUAL:',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             if (_sensitiveInfo != null) ...[
-              _buildDataTile('User Email', _sensitiveInfo!.userEmail),
-              _buildDataTile('Access Token', _sensitiveInfo!.accessToken),
+              _buildDataTile('Usuario', _sensitiveInfo!.userEmail),
+              _buildDataTile('Token de Acceso', _sensitiveInfo!.accessToken),
               _buildDataTile('Refresh Token', _sensitiveInfo!.refreshToken),
-              _buildDataTile('Private Key', _sensitiveInfo!.privateKey),
+              _buildDataTile('Clave Privada', _sensitiveInfo!.privateKey),
             ],
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
             Center(
               child: ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade50,
+                  foregroundColor: Colors.red,
+                ),
+                onPressed: _logout,
                 icon: const Icon(Icons.logout),
-                label: const Text('CERRAR SESIÓN (VOLVER)'),
+                label: const Text('CERRAR SESIÓN MANUALMENTE'),
               ),
             ),
           ],
@@ -102,19 +127,26 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   Widget _buildDataTile(String title, String value) {
     final isEmpty = value == '— vacío —';
-    return ListTile(
-      title: Text(title),
-      subtitle: Text(
-        value,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: isEmpty ? Colors.red : Colors.green,
-          fontFamily: 'monospace',
-          fontWeight: FontWeight.bold,
-        ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
       ),
-      dense: true,
+      child: ListTile(
+        title: Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        subtitle: Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isEmpty ? Colors.red : Colors.green.shade700,
+            fontFamily: 'monospace',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        dense: true,
+      ),
     );
   }
 }

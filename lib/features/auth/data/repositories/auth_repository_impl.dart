@@ -8,6 +8,16 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._secureDataService);
 
   @override
+  Future<void> register(String email, String password) async {
+    await _secureDataService.registerUser(email, password);
+  }
+
+  @override
+  Future<bool> login(String email, String password) async {
+    return await _secureDataService.authenticate(email, password);
+  }
+
+  @override
   Future<void> clearAllSensitiveData() async {
     await _secureDataService.clearSensitiveData();
   }
@@ -21,10 +31,5 @@ class AuthRepositoryImpl implements AuthRepository {
       userEmail: data[SecureDataService.kUserEmail] ?? '— vacío —',
       privateKey: data[SecureDataService.kPrivateKey] ?? '— vacío —',
     );
-  }
-
-  @override
-  Future<void> saveSensitiveData(String email) async {
-    await _secureDataService.seedSensitiveData(email);
   }
 }

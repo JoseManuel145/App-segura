@@ -11,18 +11,39 @@ class SecureDataService {
 
   final ValueNotifier<int> dataRevision = ValueNotifier<int>(0);
 
-  // Claves requeridas para la demostración
+  // Claves para la sesión actual
   static const kAccessToken  = 'access_token';
   static const kRefreshToken = 'refresh_token';
   static const kUserEmail    = 'user_email';
   static const kPrivateKey   = 'private_key';
 
-  static const sensitiveKeys = <String>[
+  // Prefijo para "base de datos" local de usuarios
+  static const _userPrefix = 'user_pwd_';
+
+  static const sensitiveKeys = [
     kAccessToken,
     kRefreshToken,
     kUserEmail,
     kPrivateKey,
   ];
+
+  /// Registra un usuario localmente (Demo)
+  Future<void> registerUser(String email, String password) async {
+    await _storage.write(key: '$_userPrefix$email', value: password);
+    debugPrint('📝 [Storage] Usuario $email registrado.');
+  }
+
+  /// Autentica contra el storage local y genera sesión (Demo)
+  Future<bool> authenticate(String email, String password) async {
+    final savedPwd = await _storage.read(key: '$_userPrefix$email');
+    
+    if (savedPwd != null && savedPwd == password) {
+      // Si coincide, "generamos" los tokens de sesión
+      await seedSensitiveData(email);
+      return true;
+    }
+    return false;
+  }
 
   Future<void> seedSensitiveData(String email) async {
     await _storage.write(key: kAccessToken,  value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
@@ -30,6 +51,7 @@ class SecureDataService {
     await _storage.write(key: kUserEmail,    value: email);
     await _storage.write(key: kPrivateKey,   value: '-----BEGIN PRIVATE KEY-----\nMIIEvA...');
     dataRevision.value++;
+    debugPrint('🔑 [Storage] Sesión iniciada para $email. Datos sembrados.');
   }
 
   Future<Map<String, String>> readSensitive() async {
@@ -41,8 +63,10 @@ class SecureDataService {
   }
 
   Future<void> clearSensitiveData() async {
-    await _storage.deleteAll();
+    for (final key in sensitiveKeys) {
+      await _storage.delete(key: key);
+    }
     dataRevision.value++;
-    debugPrint('🗑️ [SecureDataService] Datos sensibles eliminados localmente.');
+    debugPrint('🗑️ [Storage] Datos de sesión eliminados (Logout/Timeout).');
   }
 }
