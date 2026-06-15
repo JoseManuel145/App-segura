@@ -14,14 +14,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 
   final data = message.data;
-  debugPrint('📩 [Background] Mensaje recibido: $data');
+  debugPrint(' [Background] Mensaje recibido: $data');
 
   if (data['action'] == 'WIPE_SECURE_DATA') {
     const storage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     );
     await storage.deleteAll();
-    debugPrint('🗑️ [Background] Wipe ejecutado con éxito.');
+    debugPrint(' [Background] Wipe ejecutado con éxito.');
   }
 }
 
