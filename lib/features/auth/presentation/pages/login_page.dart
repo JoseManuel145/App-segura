@@ -1,11 +1,7 @@
-import 'package:flutter/foundation.dart'; // kDebugMode
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';   // SystemNavigator
 import 'package:provider/provider.dart';
 
 import '../../../../core/location/location_service_impl.dart';
-import '../../../../core/security/debug_security_service.dart';
-import '../../../../core/security/debug_security_service_impl.dart';
 import '../../../../core/security/screen_security_service.dart';
 import '../../../../core/security/screen_security_service_impl.dart';
 import '../../../../core/security/secure_data_service.dart';
@@ -28,7 +24,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   late final ScreenSecurityService _securityService;
-  late final DebugSecurityService _debugService;
   late final LoginUseCase _loginUseCase;
 
   bool _checkingGps = true;
@@ -40,59 +35,12 @@ class _LoginPageState extends State<LoginPage> {
     // Inicialización de servicios y arquitectura
     _securityService = ScreenSecurityServiceImpl();
     _securityService.enableProtection();
-    _debugService = DebugSecurityServiceImpl();
     
     final authRepository = AuthRepositoryImpl(SecureDataService.instance);
     _loginUseCase = LoginUseCase(authRepository);
 
     // Verificaciones de seguridad iniciales
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _verificarDepuracionUsb();
-    });
-
     _verificarGps();
-  }
-
-  Future<void> _verificarDepuracionUsb() async {
-    // Comentamos kDebugMode para permitir que la demo detecte el bloqueo incluso
-    // mientras desarrollamos, si es que tienes el USB Debug activado.
-    // if (kDebugMode) return; 
-
-    debugPrint('🔍 [Security] Iniciando auditoría de Depuración USB...');
-    final activa = await _debugService.isUsbDebuggingEnabled();
-    
-    debugPrint('🔍 [Security] Resultado de Depuración USB: ${activa ? "ACTIVADA (BLOQUEAR)" : "DESACTIVADA (OK)"}');
-
-    if (!mounted) return;
-    if (activa) {
-      _mostrarBloqueoUsb();
-    }
-  }
-
-  void _mostrarBloqueoUsb() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          icon: const Icon(Icons.usb_off, color: Colors.red, size: 48),
-          title: const Text('Aplicación bloqueada'),
-          content: const Text(
-            'Por políticas de seguridad, esta aplicación no puede ejecutarse '
-            'mientras la Depuración USB esté activa.\n\n'
-            'Desactiva la opción "Depuración por USB" en '
-            'Ajustes → Opciones de desarrollador, y vuelve a abrir la app.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => SystemNavigator.pop(),
-              child: const Text('Cerrar aplicación'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _verificarGps() async {

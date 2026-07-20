@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "647782038762",
+    "project_id": "app-segura-1a29e",
+    "storage_bucket": "app-segura-1a29e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647782038762:android:20eda91dc310dcd8d02b93",
+        "android_client_info": {
+          "package_name": "com.example.login_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBElG-LB-5SUQh2jHLMb7snD8p6TKPUkug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,6 +9,7 @@ import '../../domain/entities/sensitive_info.dart';
 import '../../domain/usecases/get_sensitive_data.dart';
 
 import 'tax_calculator_page.dart';
+import 'ssl_pinning_page.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -120,6 +121,24 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 icon: const Icon(Icons.calculate),
                 label: const Text('CALCULADORA DE IMPUESTOS'),
                 style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SslPinningPage()),
+                  );
+                },
+                icon: const Icon(Icons.security),
+                label: const Text('DEMO SSL / TLS PINNING (MitM)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
                 ),
               ),
