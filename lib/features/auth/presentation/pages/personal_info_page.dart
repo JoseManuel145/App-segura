@@ -8,6 +8,8 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/sensitive_info.dart';
 import '../../domain/usecases/get_sensitive_data.dart';
 
+import 'tax_calculator_page.dart';
+
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
 
@@ -107,12 +109,28 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               _buildDataTile('Refresh Token', _sensitiveInfo!.refreshToken),
               _buildDataTile('Clave Privada', _sensitiveInfo!.privateKey),
             ],
-            const SizedBox(height: 40),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TaxCalculatorPage()),
+                  );
+                },
+                icon: const Icon(Icons.calculate),
+                label: const Text('CALCULADORA DE IMPUESTOS'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Center(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade50,
                   foregroundColor: Colors.red,
+                  minimumSize: const Size(double.infinity, 50),
                 ),
                 onPressed: _logout,
                 icon: const Icon(Icons.logout),
